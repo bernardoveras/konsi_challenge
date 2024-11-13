@@ -1,21 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
-import 'src/shared/ui/theme/theme.dart';
+import 'src/konsi_app.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  Intl.defaultLocale = 'pt_BR';
+  await initializeDateFormatting('pt_BR');
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Konsi Challenge',
-      theme: KonsiTheme.main,
-      darkTheme: KonsiTheme.dark,
-      debugShowCheckedModeBanner: false,
-    );
-  }
+  runApp(const KonsiApp());
 }
