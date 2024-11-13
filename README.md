@@ -83,16 +83,18 @@ $ flutter run
 
 ---
 
-## 🛠 Tecnologias
+## 🛠 Tecnologias e Ferramentas
 
-As seguintes ferramentas foram usadas na construção do projeto:
+As seguintes ferramentas e boas práticas foram usadas na construção do projeto:
 
 #### **Mobile**
 
 -   **[Dart](https://dart.dev/)**
 -   **[Flutter](https://flutter.dev/)**
-
-#### [](https://github.com/cubos-academy/academy-template-readme-projects#utilit%C3%A1rios)
+-   Change Notifier
+-   Testes unitários
+-   Inversão de dependências
+-   Alguns conceitos do Clean Code
 
 **Utilitários**
 
@@ -106,5 +108,3 @@ As seguintes ferramentas foram usadas na construção do projeto:
  <br />
  <sub><b>Bernardo Veras</b></sub></a> <a href="https://www.linkedin.com/in/bernardoveras/" title="Bernardo Veras">✨</a>
  <br />
-
----
