@@ -91,6 +91,7 @@ As seguintes ferramentas e boas práticas foram usadas na construção do projet
 
 -   **[Dart](https://dart.dev/)**
 -   **[Flutter](https://flutter.dev/)**
+-   Go Router
 -   Change Notifier
 -   Testes unitários
 -   Inversão de dependências
