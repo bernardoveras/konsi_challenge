@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 
+import '../../modules/addresses/data/services/address_geocoding_service_impl.dart';
+import '../../modules/addresses/domain/services/i_address_service.dart';
 import '../services/geolocator/data/services/geolocator_service_impl.dart';
 import '../services/geolocator/domain/services/i_geolocator_service.dart';
 
@@ -20,7 +22,14 @@ abstract class Dependencies {
     );
   }
 
+  static void _registerAddressService() {
+    _getIt.registerSingleton<IAddressService>(
+      AddressGeocodingServiceImpl(),
+    );
+  }
+
   static void registerInstances() {
     _registerGeolocatorService();
+    _registerAddressService();
   }
 }
