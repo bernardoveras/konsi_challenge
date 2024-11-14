@@ -188,6 +188,9 @@ class _AddressesViewState extends State<AddressesView> {
                                     return AddressBookListTile(
                                       addressBook: address,
                                       onTap: () async {
+                                        ScaffoldMessenger.of(context)
+                                            .clearSnackBars();
+
                                         final parameter = AddressViewParameter(
                                           id: address.id,
                                           postalCode: address.postalCode,
