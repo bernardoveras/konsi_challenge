@@ -132,7 +132,7 @@ class _AddressViewState extends State<AddressView> {
       SnackbarService.showSuccess(
         context,
         message:
-            'Endereço ${widget.editMode ? 'atualizado' : 'salvo'} com sucesso',
+            'Endereço ${widget.editMode ? 'atualizado' : 'salvo'} com sucesso.',
       );
 
       context.pop(popResult);
