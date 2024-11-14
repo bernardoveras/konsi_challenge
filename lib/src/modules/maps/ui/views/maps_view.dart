@@ -209,11 +209,10 @@ class _MapsViewState extends State<MapsView> {
   }
 
   Future<void> getCurrentLocation() async {
+    if (geolocatorStore.currentLocation != null) {
+      return;
+    }
     try {
-      if (geolocatorStore.currentLocation != null) {
-        return animateCameraToLocation(geolocatorStore.currentLocation!);
-      }
-
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
