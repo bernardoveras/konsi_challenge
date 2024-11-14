@@ -5,9 +5,13 @@ import '../../../../shared/errors/errors.dart';
 import '../dtos/address_dto.dart';
 
 abstract interface class IAddressService {
-  AsyncResult<List<AddressDto>, GenericFailure> getAddressByLocation(
+  AsyncResult<List<AddressDto>, GenericFailure> getAddressesByLocation(
     LatLngDto location,
   );
-  AsyncResult<List<AddressDto>, GenericFailure> getAddressByText(String addressText);
-  AsyncResult<List<LatLngDto>, GenericFailure> getLocationFromAddress(String address);
+  AsyncResult<List<AddressDto>, GenericFailure> getAddressesByText({
+    String? addressText,
+  });
+  AsyncResult<List<LatLngDto>, GenericFailure> getLocationFromAddress(
+    String address,
+  );
 }

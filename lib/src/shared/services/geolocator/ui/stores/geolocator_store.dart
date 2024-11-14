@@ -6,8 +6,12 @@ import '../../../../errors/errors.dart';
 import '../../domain/enums/location_permission_status.dart';
 import '../../domain/services/i_geolocator_service.dart';
 
-mixin GeolocatorStoreMixin on ChangeNotifier {
-  IGeolocatorService get geolocatorService;
+class GeolocatorStore extends ChangeNotifier {
+  final IGeolocatorService geolocatorService;
+
+  GeolocatorStore({
+    required this.geolocatorService,
+  });
 
   LatLngDto? currentLocation;
 

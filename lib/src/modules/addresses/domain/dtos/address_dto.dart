@@ -91,24 +91,6 @@ class AddressDto extends Equatable {
     );
   }
 
-  factory AddressDto.fromQueryParameters(Map<String, String> queryParameters) {
-    return AddressDto(
-      street: queryParameters['street'],
-      city: queryParameters['city'],
-      state: queryParameters['state'],
-      neighborhood: queryParameters['neighborhood'],
-      country: queryParameters['country'],
-      postalCode: queryParameters['postalCode'],
-      number: queryParameters['number'],
-      latitude: queryParameters['latitude'] == null
-          ? null
-          : double.parse(queryParameters['latitude']!),
-      longitude: queryParameters['longitude'] == null
-          ? null
-          : double.parse(queryParameters['longitude']!),
-    );
-  }
-
   String toJson() => json.encode(toMap());
 
   factory AddressDto.fromJson(String source) =>

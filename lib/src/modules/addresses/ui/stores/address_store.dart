@@ -2,22 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:result_dart/result_dart.dart';
 
 import '../../../../shared/errors/errors.dart';
+import '../../domain/dtos/address_book_dto.dart';
 import '../../domain/dtos/address_dto.dart';
+import '../../domain/services/i_address_book_service.dart';
 import '../../domain/services/i_address_service.dart';
 
 class AddressStore extends ChangeNotifier {
-  final IAddressService addressService;
+  final IAddressService addressGeocodingService;
+  final IAddressBookService addressBookService;
 
   AddressStore({
-    required this.addressService,
+    required this.addressGeocodingService,
+    required this.addressBookService,
   });
-
-  AddressDto? address;
-
-  void changeAddress(AddressDto? value) {
-    address = value;
-    notifyListeners();
-  }
 
   bool searchingAddress = false;
 
@@ -51,8 +48,6 @@ class AddressStore extends ChangeNotifier {
         number: '45',
       );
 
-      changeAddress(mockAddress);
-
       return const Success(mockAddress);
     } on GenericFailure catch (e) {
       return Failure(e);
@@ -68,13 +63,26 @@ class AddressStore extends ChangeNotifier {
     }
   }
 
-  AsyncResult<bool, GenericFailure> saveAddress() async {
+  AsyncResult<bool, GenericFailure> saveAddress(AddressBookDto address) async {
     try {
       changeSaving(true);
 
-      await Future.delayed(const Duration(seconds: 4));
+      final result = await addressBookService.save(address);
+
+      if (result.isError()) {
+        return Failure(result.exceptionOrNull()!);
+      }
 
       return const Success(true);
+    } on GenericFailure catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(
+        UnknownFailure(
+          error: e,
+          message: 'Não foi possível salvar o endereço.',
+        ),
+      );
     } finally {
       changeSaving(false);
     }

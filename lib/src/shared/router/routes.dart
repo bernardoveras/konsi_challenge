@@ -1,16 +1,24 @@
-import '../../modules/addresses/domain/dtos/address_dto.dart';
+import '../../modules/addresses/ui/parameters/address_view_parameter.dart';
 import 'router.dart';
 
 abstract class Routes {
   static const String root = '/maps';
   static const String addresses = '/addresses';
-  static const String createAddress = '/addresses/new';
+  static String createAddress({
+    AddressViewParameter? parameter,
+  }) {
+    return RoutePathBuilder.build(
+      '$addresses/new',
+      queryParameters: parameter?.toQueryParameter(),
+    );
+  }
+
   static String editAddress({
-    AddressDto? address,
+    AddressViewParameter? parameter,
   }) {
     return RoutePathBuilder.build(
       '$addresses/edit',
-      queryParameters: address?.toMap(),
+      queryParameters: parameter?.toQueryParameter(),
     );
   }
 }

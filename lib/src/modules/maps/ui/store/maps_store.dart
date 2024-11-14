@@ -3,18 +3,13 @@ import 'package:result_dart/result_dart.dart';
 
 import '../../../../shared/dtos/lat_lng_dto.dart';
 import '../../../../shared/errors/errors.dart';
-import '../../../../shared/services/geolocator/domain/services/i_geolocator_service.dart';
-import '../../../../shared/services/geolocator/ui/mixins/geolocator_store_mixin.dart';
 import '../../../addresses/domain/dtos/address_dto.dart';
 import '../../../addresses/domain/services/i_address_service.dart';
 
-class MapsStore extends ChangeNotifier with GeolocatorStoreMixin {
-  @override
-  final IGeolocatorService geolocatorService;
+class MapsStore extends ChangeNotifier {
   final IAddressService addressService;
 
   MapsStore({
-    required this.geolocatorService,
     required this.addressService,
   });
 
@@ -38,7 +33,7 @@ class MapsStore extends ChangeNotifier with GeolocatorStoreMixin {
       changeSearchingAddress(true);
 
       final addressFoundResult =
-          await addressService.getAddressByLocation(latLng);
+          await addressService.getAddressesByLocation(latLng);
 
       return addressFoundResult;
     } on GenericFailure catch (e) {
@@ -63,7 +58,7 @@ class MapsStore extends ChangeNotifier with GeolocatorStoreMixin {
       changeSearchingAddress(true);
 
       final addressFoundResult =
-          await addressService.getAddressByText(addressText);
+          await addressService.getAddressesByText(addressText: addressText);
 
       changeAddresses(addressFoundResult.getOrDefault([]));
 

@@ -7,11 +7,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../shared/di/di.dart';
 import '../../../../shared/dtos/lat_lng_dto.dart';
 import '../../../../shared/router/router.dart';
+import '../../../../shared/services/geolocator/ui/stores/geolocator_store.dart';
 import '../../../../shared/ui/extensions/extensions.dart';
 import '../../../../shared/ui/widgets/widgets.dart';
 import '../../../../shared/utils/debouncer.dart';
 import '../../../../shared/utils/utils.dart';
 import '../../../addresses/domain/dtos/address_dto.dart';
+import '../../../addresses/ui/parameters/address_view_parameter.dart';
 import '../store/maps_store.dart';
 import '../widgets/address_info_modal.dart';
 import '../widgets/address_list_tile.dart';
@@ -26,6 +28,7 @@ class MapsView extends StatefulWidget {
 
 class _MapsViewState extends State<MapsView> {
   late final MapsStore store;
+  late final GeolocatorStore geolocatorStore;
 
   late final GoogleMapController _mapController;
   final searchController = TextEditingController();
@@ -57,8 +60,12 @@ class _MapsViewState extends State<MapsView> {
   }
 
   Future<void> getAddressByLocation(LatLng location) async {
+    bool loadingModalShowing = false;
+
     try {
       if (store.searchingAddress) return;
+
+      loadingModalShowing = true;
 
       showModalBottomSheet(
         context: context,
@@ -91,17 +98,25 @@ class _MapsViewState extends State<MapsView> {
 
       if (!mounted) return;
 
+      loadingModalShowing = false;
+
+      context.pop();
+
       await showAddressInfo(address);
     } finally {
-      if (mounted) {
+      if (loadingModalShowing && mounted) {
         context.pop();
       }
     }
   }
 
   Future<void> getAddressByText(String addressText) async {
+    bool loadingModalShowing = false;
+
     try {
       if (store.searchingAddress) return;
+
+      loadingModalShowing = true;
 
       showModalBottomSheet(
         context: context,
@@ -129,9 +144,13 @@ class _MapsViewState extends State<MapsView> {
 
       if (!mounted) return;
 
+      loadingModalShowing = false;
+
+      context.pop();
+
       await showAddressInfo(address);
     } finally {
-      if (mounted) {
+      if (loadingModalShowing && mounted) {
         context.pop();
       }
     }
@@ -169,8 +188,14 @@ class _MapsViewState extends State<MapsView> {
           onSubmit: () async {
             context.pop();
 
+            final parameter = AddressViewParameter(
+              postalCode: address.postalCode,
+              address: address.fullAddress(),
+              number: address.number,
+            );
+
             final result = await context.push(
-              Routes.editAddress(address: address),
+              Routes.createAddress(parameter: parameter),
             );
 
             if (result != true) return;
@@ -185,6 +210,10 @@ class _MapsViewState extends State<MapsView> {
 
   Future<void> getCurrentLocation() async {
     try {
+      if (geolocatorStore.currentLocation != null) {
+        return animateCameraToLocation(geolocatorStore.currentLocation!);
+      }
+
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -195,7 +224,7 @@ class _MapsViewState extends State<MapsView> {
         ),
       ).ignore();
 
-      final result = await store.searchCurrentLocation();
+      final result = await geolocatorStore.searchCurrentLocation();
 
       if (result.isError()) return;
 
@@ -213,8 +242,8 @@ class _MapsViewState extends State<MapsView> {
   void initState() {
     super.initState();
 
+    geolocatorStore = Dependencies.resolve();
     store = MapsStore(
-      geolocatorService: Dependencies.resolve(),
       addressService: Dependencies.resolve(),
     );
 
@@ -230,6 +259,7 @@ class _MapsViewState extends State<MapsView> {
 
     searchController.dispose();
     searchFocusNode.dispose();
+    _mapController.dispose();
   }
 
   @override
@@ -256,7 +286,11 @@ class _MapsViewState extends State<MapsView> {
             )
           : null,
       body: GestureDetector(
-        onTap: () {},
+        onTap: () {
+          if (searchFocusNode.hasFocus && searchController.text.isEmpty) {
+            hideKeyboard(context);
+          }
+        },
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Stack(
@@ -266,8 +300,19 @@ class _MapsViewState extends State<MapsView> {
                   height: constraints.maxHeight,
                   width: constraints.maxWidth,
                   child: GoogleMap(
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
                     mapType: MapType.normal,
-                    initialCameraPosition: _kDefaultInitialPosition,
+                    initialCameraPosition:
+                        geolocatorStore.currentLocation == null
+                            ? _kDefaultInitialPosition
+                            : CameraPosition(
+                                target: LatLng(
+                                  geolocatorStore.currentLocation!.latitude,
+                                  geolocatorStore.currentLocation!.longitude,
+                                ),
+                                zoom: 19,
+                              ),
                     onTap: getAddressByLocation,
                     markers: markers.values.toSet(),
                     onMapCreated: (controller) {
@@ -276,134 +321,160 @@ class _MapsViewState extends State<MapsView> {
                   ),
                 ),
                 ListenableBuilder(
-                  listenable: store,
+                  listenable: geolocatorStore,
                   builder: (context, child) {
-                    return Stack(
-                      children: [
-                        IgnorePointer(
-                          ignoring: !store.searchingCurrentLocation,
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 250),
-                            opacity: store.searchingCurrentLocation ? 1 : 0,
-                            curve: Curves.easeInOut,
-                            child: const MapBlur(),
-                          ),
-                        ),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          reverseDuration: const Duration(milliseconds: 300),
-                          switchInCurve: Curves.ease,
-                          switchOutCurve: Curves.ease,
-                          child: (store.addresses.isNotEmpty &&
-                                      searchFocusNode.hasFocus) ||
-                                  searchFocusNode.hasFocus &&
-                                      store.searchingAddress
-                              ? Container(
-                                  key: const ValueKey('search_background'),
-                                  color: Colors.white,
-                                  width: double.infinity,
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                        Padding(
-                          key: const ValueKey('address_search_bar'),
-                          padding: EdgeInsets.only(
-                            top: MediaQuery.paddingOf(context).top + 16,
-                            left: 20,
-                            right: 20,
-                          ),
-                          child: Column(
-                            children: [
-                              SearchBar(
-                                hintText: 'Buscar',
-                                focusNode: searchFocusNode,
-                                controller: searchController,
-                                padding: const WidgetStatePropertyAll(
-                                  EdgeInsets.only(
-                                    left: 16,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.streetAddress,
-                                textInputAction: TextInputAction.search,
-                                onSubmitted: (_) =>
-                                    getAddressByText(searchController.text),
-                                onChanged: (value) {
-                                  if (value.isEmpty) return;
-                                  if (value.length < 3) return;
-
-                                  searchDebouncer.run(() {
-                                    if (store.searchingAddress) return;
-                                    store.getAddressByText(value);
-                                  });
-                                },
-                                trailing: searchController.text.isNotEmpty ||
-                                        searchFocusNode.hasFocus
-                                    ? [
-                                        GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              hideKeyboard(context);
-                                              clearMarkers();
-                                              searchController.clear();
-                                              store.addresses.clear();
-                                            });
-                                          },
-                                          behavior: HitTestBehavior.opaque,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Icon(
-                                              Icons.close,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
+                    return ListenableBuilder(
+                      listenable: store,
+                      builder: (context, child) {
+                        return Stack(
+                          children: [
+                            IgnorePointer(
+                              ignoring:
+                                  !geolocatorStore.searchingCurrentLocation,
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 250),
+                                opacity:
+                                    geolocatorStore.searchingCurrentLocation
+                                        ? 1
+                                        : 0,
+                                curve: Curves.easeInOut,
+                                child: const MapBlur(),
+                              ),
+                            ),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              reverseDuration:
+                                  const Duration(milliseconds: 300),
+                              switchInCurve: Curves.ease,
+                              switchOutCurve: Curves.ease,
+                              child: (store.addresses.isNotEmpty &&
+                                          searchFocusNode.hasFocus) ||
+                                      searchFocusNode.hasFocus &&
+                                          store.searchingAddress
+                                  ? Container(
+                                      key: const ValueKey('search_background'),
+                                      color: Colors.white,
+                                      width: double.infinity,
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                            Padding(
+                              key: const ValueKey('address_search_bar'),
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.paddingOf(context).top + 16,
+                                left: 20,
+                                right: 20,
+                              ),
+                              child: Column(
+                                children: [
+                                  AnimatedOpacity(
+                                    opacity: searchFocusNode.hasFocus ? 1 : 0.8,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                    child: SearchBar(
+                                      hintText: 'Buscar',
+                                      focusNode: searchFocusNode,
+                                      controller: searchController,
+                                      padding: const WidgetStatePropertyAll(
+                                        EdgeInsets.only(
+                                          left: 16,
                                         ),
-                                      ]
-                                    : null,
-                                leading: Icon(
-                                  Icons.search,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              Expanded(
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  reverseDuration:
-                                      const Duration(milliseconds: 300),
-                                  switchInCurve: Curves.ease,
-                                  switchOutCurve: Curves.ease,
-                                  child: searchFocusNode.hasFocus
-                                      ? store.searchingAddress
-                                          ? const CircularProgressIndicator()
-                                          : ListView.separated(
-                                              itemCount: store.addresses.length,
-                                              physics:
-                                                  const BouncingScrollPhysics(),
-                                              padding: EdgeInsets.zero,
-                                              separatorBuilder:
-                                                  (context, index) =>
-                                                      const Divider(),
-                                              itemBuilder: (context, index) {
-                                                final address =
-                                                    store.addresses[index];
+                                      ),
+                                      keyboardType: TextInputType.streetAddress,
+                                      textInputAction: TextInputAction.search,
+                                      onSubmitted: (_) => getAddressByText(
+                                        searchController.text,
+                                      ),
+                                      onChanged: (value) {
+                                        if (value.isEmpty) return;
+                                        if (value.length < 3) return;
 
-                                                return AddressListTile(
-                                                  address: address,
-                                                  onTap: () {
+                                        searchDebouncer.run(() {
+                                          if (store.searchingAddress) return;
+                                          store.getAddressByText(value);
+                                        });
+                                      },
+                                      trailing: searchController
+                                                  .text.isNotEmpty ||
+                                              searchFocusNode.hasFocus
+                                          ? [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
                                                     hideKeyboard(context);
-                                                    setAddressMarker(address);
-                                                    showAddressInfo(address);
+                                                    clearMarkers();
+                                                    searchController.clear();
+                                                    store.addresses.clear();
+                                                  });
+                                                },
+                                                behavior:
+                                                    HitTestBehavior.opaque,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.all(16),
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ]
+                                          : null,
+                                      leading: Icon(
+                                        Icons.search,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Expanded(
+                                    child: AnimatedSwitcher(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      reverseDuration:
+                                          const Duration(milliseconds: 300),
+                                      switchInCurve: Curves.ease,
+                                      switchOutCurve: Curves.ease,
+                                      child: searchFocusNode.hasFocus
+                                          ? store.searchingAddress
+                                              ? const CircularProgressIndicator()
+                                              : ListView.separated(
+                                                  itemCount:
+                                                      store.addresses.length,
+                                                  physics:
+                                                      const BouncingScrollPhysics(),
+                                                  padding: EdgeInsets.zero,
+                                                  separatorBuilder:
+                                                      (context, index) =>
+                                                          const Divider(),
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final address =
+                                                        store.addresses[index];
+
+                                                    return AddressListTile(
+                                                      address: address,
+                                                      onTap: () {
+                                                        hideKeyboard(context);
+                                                        setAddressMarker(
+                                                          address,
+                                                        );
+                                                        showAddressInfo(
+                                                          address,
+                                                        );
+                                                      },
+                                                    );
                                                   },
-                                                );
-                                              },
-                                            )
-                                      : const SizedBox.shrink(),
-                                ),
+                                                )
+                                          : const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
                 ),

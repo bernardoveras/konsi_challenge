@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 import 'package:validatorless/validatorless.dart';
 
 import '../../../../shared/di/di.dart';
@@ -10,15 +11,18 @@ import '../../../../shared/ui/services/snackbar/snackbar.dart';
 import '../../../../shared/ui/widgets/widgets.dart';
 import '../../../../shared/utils/utils.dart';
 import '../../../../shared/validators/validators.dart';
-import '../../domain/dtos/address_dto.dart';
+import '../../domain/dtos/address_book_dto.dart';
+import '../parameters/address_view_parameter.dart';
 import '../stores/address_store.dart';
 
 class AddressView extends StatefulWidget {
-  final AddressDto? address;
+  final AddressViewParameter? parameter;
+  final bool editMode;
 
   const AddressView({
     super.key,
-    this.address,
+    this.parameter,
+    this.editMode = false,
   });
 
   @override
@@ -83,7 +87,7 @@ class _AddressViewState extends State<AddressView> {
   bool formIsValid() => formKey.currentState?.validate() == true;
 
   Future<void> onSubmit() async {
-    bool popResult = false;
+    AddressBookDto? popResult;
 
     hideKeyboard(context);
 
@@ -106,7 +110,15 @@ class _AddressViewState extends State<AddressView> {
         ),
       ).ignore();
 
-      final result = await store.saveAddress();
+      final address = AddressBookDto(
+        id: widget.parameter?.id ?? const Uuid().v4(),
+        postalCode: postalCodeController.text,
+        address: addressController.text,
+        number: numberController.text,
+        complement: complementController.text,
+      );
+
+      final result = await store.saveAddress(address);
 
       if (!mounted) return;
 
@@ -114,11 +126,12 @@ class _AddressViewState extends State<AddressView> {
 
       if (displayed) return;
 
-      popResult = true;
+      popResult = address;
 
       SnackbarService.showSuccess(
         context,
-        message: 'Endereço salvo com sucesso',
+        message:
+            'Endereço ${widget.editMode ? 'atualizado' : 'salvo'} com sucesso',
       );
 
       context.pop(popResult);
@@ -134,16 +147,14 @@ class _AddressViewState extends State<AddressView> {
     super.initState();
 
     store = AddressStore(
-      addressService: Dependencies.resolve(),
+      addressGeocodingService: Dependencies.resolve(),
+      addressBookService: Dependencies.resolve(),
     );
 
-    postalCodeController.text = widget.address?.postalCode ?? '';
-    addressController.text = widget.address?.fullAddress() ?? '';
-    numberController.text = widget.address?.number ?? '';
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      store.changeAddress(widget.address);
-    });
+    postalCodeController.text = widget.parameter?.postalCode ?? '';
+    addressController.text = widget.parameter?.address ?? '';
+    numberController.text = widget.parameter?.number ?? '';
+    complementController.text = widget.parameter?.complement ?? '';
   }
 
   @override

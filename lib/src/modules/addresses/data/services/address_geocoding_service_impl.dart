@@ -3,12 +3,13 @@ import 'package:result_dart/result_dart.dart';
 
 import '../../../../shared/dtos/lat_lng_dto.dart';
 import '../../../../shared/errors/errors.dart';
+import '../../../../shared/extensions/extensions.dart';
 import '../../domain/dtos/address_dto.dart';
 import '../../domain/services/i_address_service.dart';
 
 class AddressGeocodingServiceImpl implements IAddressService {
   @override
-  AsyncResult<List<AddressDto>, GenericFailure> getAddressByLocation(
+  AsyncResult<List<AddressDto>, GenericFailure> getAddressesByLocation(
     LatLngDto location,
   ) async {
     try {
@@ -48,11 +49,13 @@ class AddressGeocodingServiceImpl implements IAddressService {
   }
 
   @override
-  AsyncResult<List<AddressDto>, GenericFailure> getAddressByText(
-    String addressText,
-  ) async {
+  AsyncResult<List<AddressDto>, GenericFailure> getAddressesByText({
+    String? addressText,
+  }) async {
     try {
-      final locationResult = await getLocationFromAddress(addressText);
+      if (addressText.isBlank) return const Success([]);
+
+      final locationResult = await getLocationFromAddress(addressText!);
 
       if (locationResult.isError()) {
         return Failure(locationResult.exceptionOrNull()!);
@@ -60,7 +63,7 @@ class AddressGeocodingServiceImpl implements IAddressService {
 
       final location = locationResult.getOrThrow();
 
-      final addressResult = await getAddressByLocation(location.first);
+      final addressResult = await getAddressesByLocation(location.first);
 
       return addressResult;
     } catch (e) {

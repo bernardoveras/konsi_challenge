@@ -6,10 +6,12 @@ abstract class KonsiTheme {
   static final ThemeData main = ThemeData(
     fontFamily: 'Roboto',
     colorScheme: ColorScheme.fromSeed(
+      primary: BrandColor.base,
       seedColor: BrandColor.base,
     ),
     scaffoldBackgroundColor: Colors.white,
     dialogBackgroundColor: Colors.white,
+    primaryColor: BrandColor.base,
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(
         fixedSize: const WidgetStatePropertyAll(
@@ -59,7 +61,6 @@ abstract class KonsiTheme {
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.white,
       foregroundColor: Colors.grey.shade900,
-      titleSpacing: 8,
       elevation: 0,
       titleTextStyle: TextStyle(
         fontSize: 24,
@@ -68,7 +69,7 @@ abstract class KonsiTheme {
       ),
     ),
     searchBarTheme: SearchBarThemeData(
-      backgroundColor: const WidgetStatePropertyAll(Colors.white),
+  backgroundColor:  WidgetStatePropertyAll(Colors.grey.shade200),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 16),
       ),
