@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:result_dart/result_dart.dart';
 
 import '../../../../shared/errors/errors.dart';
+import '../../../../shared/extensions/extensions.dart';
 import '../../../../shared/local_storage_key.dart';
 import '../../../../shared/services/local_storage/domain/domain.dart';
 import '../../domain/dtos/address_book_dto.dart';
@@ -64,7 +65,7 @@ class AddressBookLocalStorageServiceImpl implements IAddressBookService {
       final addressesJson =
           await localStorageService.read(LocalStorageKey.addresses);
 
-      final addresses = <AddressBookDto>[];
+      var addresses = <AddressBookDto>[];
 
       if (addressesJson != null) {
         final addressesDecoded = jsonDecode(addressesJson);
@@ -74,6 +75,16 @@ class AddressBookLocalStorageServiceImpl implements IAddressBookService {
             (addressesDecoded).map((x) => AddressBookDto.fromMap(x)).toList(),
           );
         }
+      }
+
+      if (filter.isNotBlank) {
+        addresses = addresses
+            .where((x) =>
+                x.postalCode
+                    .removeSpecialCharacters()!
+                    .contains(filter!.removeSpecialCharacters()!) ||
+                x.address.toLowerCase().contains(filter.toLowerCase()))
+            .toList();
       }
 
       return Success(addresses);

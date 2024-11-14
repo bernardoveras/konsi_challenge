@@ -84,12 +84,13 @@ class _AddressesViewState extends State<AddressesView> {
                   textInputAction: TextInputAction.search,
                   controller: searchController,
                   onChanged: (value) {
-                    if (value.isEmpty) return;
-                    if (value.length < 3) return;
-
                     searchDebouncer.run(() {
-                      // if (store.searchingAddress) return;
-                      // store.getAddressByText(value);
+                      if (store.searching) return;
+                      if (value.length < 3) {
+                        store.getAddresses();
+                        return;
+                      }
+                      store.getAddresses(filter: value);
                     });
                   },
                   trailing: searchController.text.isNotEmpty
@@ -99,7 +100,9 @@ class _AddressesViewState extends State<AddressesView> {
                               setState(() {
                                 hideKeyboard(context);
                                 searchController.clear();
-                                // store.addresses.clear();
+                                store.getAddresses(
+                                  filter: searchController.text,
+                                );
                               });
                             },
                             behavior: HitTestBehavior.opaque,
