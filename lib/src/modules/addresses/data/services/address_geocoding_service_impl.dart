@@ -8,7 +8,7 @@ import '../../domain/services/i_address_service.dart';
 
 class AddressGeocodingServiceImpl implements IAddressService {
   @override
-  AsyncResult<AddressDto, GenericFailure> getAddressByLocation(
+  AsyncResult<List<AddressDto>, GenericFailure> getAddressByLocation(
     LatLngDto location,
   ) async {
     try {
@@ -26,15 +26,48 @@ class AddressGeocodingServiceImpl implements IAddressService {
         );
       }
 
-      final parsedAddress = _parsePlacemarkToAddressDto(addressesFound.first);
+      final parsedAddresses = addressesFound
+          .map(
+            (x) => _parsePlacemarkToAddressDto(addressesFound.first).copyWith(
+              latitude: location.latitude,
+              longitude: location.longitude,
+            ),
+          )
+          .toList();
 
-      return Success(parsedAddress);
+      return Success(parsedAddresses);
     } catch (e) {
       return Failure(
         UnknownFailure(
           error: e,
           message:
               'Não foi possível obter o endereço através da latitude e longitude.',
+        ),
+      );
+    }
+  }
+
+  @override
+  AsyncResult<List<AddressDto>, GenericFailure> getAddressByText(
+    String addressText,
+  ) async {
+    try {
+      final locationResult = await getLocationFromAddress(addressText);
+
+      if (locationResult.isError()) {
+        return Failure(locationResult.exceptionOrNull()!);
+      }
+
+      final location = locationResult.getOrThrow();
+
+      final addressResult = await getAddressByLocation(location);
+
+      return addressResult;
+    } catch (e) {
+      return Failure(
+        UnknownFailure(
+          error: e,
+          message: 'Não foi possível obter o endereço.',
         ),
       );
     }

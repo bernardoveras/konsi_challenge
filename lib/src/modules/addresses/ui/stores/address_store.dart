@@ -26,6 +26,13 @@ class AddressStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool saving = false;
+
+  void changeSaving(bool value) {
+    saving = value;
+    notifyListeners();
+  }
+
   AsyncResult<AddressDto, GenericFailure> getAddressByPostalCode(
     String postalCode,
   ) async {
@@ -62,8 +69,14 @@ class AddressStore extends ChangeNotifier {
   }
 
   AsyncResult<bool, GenericFailure> saveAddress() async {
-    await Future.delayed(const Duration(seconds: 4));
+    try {
+      changeSaving(true);
 
-    return const Success(true);
+      await Future.delayed(const Duration(seconds: 4));
+
+      return const Success(true);
+    } finally {
+      changeSaving(false);
+    }
   }
 }

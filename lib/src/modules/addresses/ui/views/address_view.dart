@@ -200,7 +200,9 @@ class _AddressViewState extends State<AddressView> {
                         ]),
                         keyboardType: TextInputType.number,
                         textInputAction: TextInputAction.next,
-                        enabled: !store.searchingAddress,
+                        enabled: !store.searchingAddress &&
+                            !store.saving &&
+                            !store.saving,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           CepInputFormatter(),
@@ -224,7 +226,7 @@ class _AddressViewState extends State<AddressView> {
                       ),
                       keyboardType: TextInputType.streetAddress,
                       textInputAction: TextInputAction.next,
-                      enabled: !store.searchingAddress,
+                      enabled: !store.searchingAddress && !store.saving,
                       autofillHints: const [
                         AutofillHints.fullStreetAddress,
                       ],
@@ -239,7 +241,7 @@ class _AddressViewState extends State<AddressView> {
                     TextFormField(
                       controller: numberController,
                       textInputAction: TextInputAction.next,
-                      enabled: !store.searchingAddress,
+                      enabled: !store.searchingAddress && !store.saving,
                       decoration: const InputDecoration(
                         labelText: 'Número',
                         hintText: 'Digite o número',
@@ -251,7 +253,7 @@ class _AddressViewState extends State<AddressView> {
                     TextFormField(
                       controller: complementController,
                       textInputAction: TextInputAction.done,
-                      enabled: !store.searchingAddress,
+                      enabled: !store.searchingAddress && !store.saving,
                       onFieldSubmitted: (_) => onSubmit(),
                       autofillHints: const [
                         AutofillHints.streetAddressLine1,

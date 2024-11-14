@@ -12,6 +12,8 @@ class AddressDto extends Equatable {
   final String? country;
   final String? postalCode;
   final String? number;
+  final double? latitude;
+  final double? longitude;
 
   const AddressDto({
     this.street,
@@ -21,6 +23,8 @@ class AddressDto extends Equatable {
     this.country,
     this.postalCode,
     this.number,
+    this.latitude,
+    this.longitude,
   });
 
   String fullAddress() {
@@ -68,6 +72,8 @@ class AddressDto extends Equatable {
       'country': country,
       'postalCode': postalCode,
       'number': number,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -80,6 +86,26 @@ class AddressDto extends Equatable {
       country: map['country'],
       postalCode: map['postalCode'],
       number: map['number'],
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+    );
+  }
+
+  factory AddressDto.fromQueryParameters(Map<String, String> queryParameters) {
+    return AddressDto(
+      street: queryParameters['street'],
+      city: queryParameters['city'],
+      state: queryParameters['state'],
+      neighborhood: queryParameters['neighborhood'],
+      country: queryParameters['country'],
+      postalCode: queryParameters['postalCode'],
+      number: queryParameters['number'],
+      latitude: queryParameters['latitude'] == null
+          ? null
+          : double.parse(queryParameters['latitude']!),
+      longitude: queryParameters['longitude'] == null
+          ? null
+          : double.parse(queryParameters['longitude']!),
     );
   }
 
@@ -87,6 +113,30 @@ class AddressDto extends Equatable {
 
   factory AddressDto.fromJson(String source) =>
       AddressDto.fromMap(json.decode(source));
+
+  AddressDto copyWith({
+    String? street,
+    String? city,
+    String? state,
+    String? neighborhood,
+    String? country,
+    String? postalCode,
+    String? number,
+    double? latitude,
+    double? longitude,
+  }) {
+    return AddressDto(
+      street: street ?? this.street,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      neighborhood: neighborhood ?? this.neighborhood,
+      country: country ?? this.country,
+      postalCode: postalCode ?? this.postalCode,
+      number: number ?? this.number,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -97,5 +147,7 @@ class AddressDto extends Equatable {
         country,
         postalCode,
         number,
+        latitude,
+        longitude,
       ];
 }

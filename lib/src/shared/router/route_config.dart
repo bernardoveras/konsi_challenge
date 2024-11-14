@@ -34,7 +34,7 @@ abstract class RouteConfig {
               builder: (context, state) => AddressView(
                 address: state.uri.queryParameters.isEmpty
                     ? null
-                    : AddressDto.fromMap(state.uri.queryParameters),
+                    : AddressDto.fromQueryParameters(state.uri.queryParameters),
               ),
             ),
           ],

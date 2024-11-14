@@ -38,6 +38,7 @@ class _MapsViewState extends State<MapsView> {
   );
 
   void clearMarkers() {
+    if (markers.isEmpty) return;
     setState(() => markers.clear());
   }
 
@@ -79,22 +80,9 @@ class _MapsViewState extends State<MapsView> {
 
       if (displayed) return;
 
-      final address = result.getOrThrow();
+      final address = result.getOrThrow().first;
 
-      final markerId = MarkerId(address.hashCode.toString());
-      final marker = Marker(
-        markerId: markerId,
-        position: location,
-        infoWindow: InfoWindow.noText,
-        onTap: () => showAddressInfo(address),
-      );
-
-      setState(() {
-        markers.clear();
-        markers[markerId] = marker;
-      });
-
-      animateCameraToLocation(latLng).ignore();
+      await setAddressMarker(address);
 
       await Future.delayed(const Duration(milliseconds: 250));
 
@@ -106,6 +94,66 @@ class _MapsViewState extends State<MapsView> {
         context.pop();
       }
     }
+  }
+
+  Future<void> getAddressByText(String addressText) async {
+    try {
+      if (store.searchingAddress) return;
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (context) => const LoadingModal(
+          description: 'Buscando endereço...',
+        ),
+      ).ignore();
+
+      final result = await store.getAddressByText(addressText);
+
+      if (!mounted) return;
+
+      final displayed = result.displaySnackbarWhenError(context);
+
+      if (displayed) return;
+
+      final address = result.getOrThrow().first;
+
+      await setAddressMarker(address);
+
+      await Future.delayed(const Duration(milliseconds: 250));
+
+      if (!mounted) return;
+
+      await showAddressInfo(address);
+    } finally {
+      if (mounted) {
+        context.pop();
+      }
+    }
+  }
+
+  Future<void> setAddressMarker(AddressDto address) async {
+    final markerId = MarkerId(address.hashCode.toString());
+    final marker = Marker(
+      markerId: markerId,
+      position: LatLng(address.latitude!, address.longitude!),
+      infoWindow: InfoWindow.noText,
+      onTap: () => showAddressInfo(address),
+    );
+
+    setState(() {
+      markers.clear();
+      markers[markerId] = marker;
+    });
+
+    animateCameraToLocation(
+      LatLngDto(
+        latitude: address.latitude!,
+        longitude: address.longitude!,
+      ),
+    ).ignore();
   }
 
   Future<void> showAddressInfo(AddressDto address) {
@@ -125,6 +173,7 @@ class _MapsViewState extends State<MapsView> {
             if (result != true) return;
 
             clearMarkers();
+            searchController.clear();
           },
         );
       },
@@ -190,6 +239,11 @@ class _MapsViewState extends State<MapsView> {
               child: FloatingActionButton(
                 onPressed: () {
                   hideKeyboard(context);
+                  clearMarkers();
+
+                  if (searchController.text.isEmpty) return;
+
+                  getAddressByText(searchController.text);
                 },
                 child: const Icon(
                   Icons.search,
@@ -265,6 +319,10 @@ class _MapsViewState extends State<MapsView> {
                                     left: 16,
                                   ),
                                 ),
+                                keyboardType: TextInputType.streetAddress,
+                                textInputAction: TextInputAction.search,
+                                onSubmitted: (_) =>
+                                    getAddressByText(searchController.text),
                                 trailing: searchController.text.isNotEmpty ||
                                         searchFocusNode.hasFocus
                                     ? [
@@ -272,6 +330,7 @@ class _MapsViewState extends State<MapsView> {
                                           onTap: () {
                                             setState(() {
                                               hideKeyboard(context);
+                                              clearMarkers();
                                               searchController.clear();
                                             });
                                           },
