@@ -27,7 +27,9 @@ class AddressDto extends Equatable {
     this.longitude,
   });
 
-  String fullAddress() {
+  String fullAddress({
+    bool showNumber = true,
+  }) {
     var address = '';
 
     if (street.isNotBlank) {
@@ -35,7 +37,7 @@ class AddressDto extends Equatable {
       address += street!;
     }
 
-    if (number.isNotBlank) {
+    if (showNumber && number.isNotBlank) {
       if (address.isNotBlank) address += ', ';
       address += number!;
     }

@@ -25,6 +25,7 @@ dependencies:
   shared_preferences: ^2.3.3
   hugeicons: ^0.0.7
   uuid: ^4.5.1
+  search_cep: ^4.0.2
 
 dev_dependencies:
   flutter_test:

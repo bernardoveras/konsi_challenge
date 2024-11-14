@@ -41,6 +41,7 @@ class _AddressViewState extends State<AddressView> {
 
   Future<void> onSearchAddressByPostalCode(String postalCode) async {
     try {
+      ScaffoldMessenger.of(context).clearSnackBars();
       hideKeyboard(context);
 
       showModalBottomSheet(
@@ -64,7 +65,7 @@ class _AddressViewState extends State<AddressView> {
       final address = result.getOrThrow();
 
       postalCodeController.text = address.postalCode ?? '';
-      addressController.text = address.fullAddress();
+      addressController.text = address.fullAddress(showNumber: false);
       numberController.text = address.number ?? '';
       complementController.clear();
     } finally {
@@ -149,6 +150,7 @@ class _AddressViewState extends State<AddressView> {
     store = AddressStore(
       addressGeocodingService: Dependencies.resolve(),
       addressBookService: Dependencies.resolve(),
+      cepLocatorService: Dependencies.resolve(),
     );
 
     postalCodeController.text = widget.parameter?.postalCode ?? '';

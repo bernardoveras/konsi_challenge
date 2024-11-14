@@ -61,6 +61,26 @@ class _AddressesViewState extends State<AddressesView> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: widget.key,
+      floatingActionButton: SizedBox.square(
+        dimension: 64,
+        child: FloatingActionButton(
+          onPressed: () async {
+            hideKeyboard(context);
+
+            final result = await context.push(
+              Routes.createAddress(),
+            );
+
+            if (result is! AddressBookDto) return;
+
+            store.updateAddressBook(result);
+          },
+          child: const Icon(
+            Icons.add,
+            size: 32,
+          ),
+        ),
+      ),
       body: ListenableBuilder(
         listenable: store,
         builder: (context, child) {

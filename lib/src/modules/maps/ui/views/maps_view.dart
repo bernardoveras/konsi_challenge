@@ -190,7 +190,7 @@ class _MapsViewState extends State<MapsView> {
 
             final parameter = AddressViewParameter(
               postalCode: address.postalCode,
-              address: address.fullAddress(),
+              address: address.fullAddress(showNumber: false),
               number: address.number,
             );
 

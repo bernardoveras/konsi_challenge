@@ -5,6 +5,8 @@ import '../../modules/addresses/data/services/address_book_local_storage_service
 import '../../modules/addresses/data/services/address_geocoding_service_impl.dart';
 import '../../modules/addresses/domain/services/i_address_book_service.dart';
 import '../../modules/addresses/domain/services/i_address_service.dart';
+import '../services/cep/data/services/cep_locator_via_cep_service_impl.dart';
+import '../services/cep/domain/services/i_cep_locator_service.dart';
 import '../services/geolocator/data/services/geolocator_service_impl.dart';
 import '../services/geolocator/domain/services/i_geolocator_service.dart';
 import '../services/geolocator/ui/stores/geolocator_store.dart';
@@ -55,9 +57,16 @@ abstract class Dependencies {
     );
   }
 
+  static void _registerCepLocatorService() {
+    _getIt.registerSingleton<ICepLocatorService>(
+      CepLocatorViaCepServiceImpl(),
+    );
+  }
+
   static void registerInstances() {
     _registerLocalStorage();
     _registerGeolocator();
+    _registerCepLocatorService();
     _registerAddressService();
   }
 }
