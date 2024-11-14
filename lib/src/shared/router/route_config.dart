@@ -5,6 +5,7 @@ import '../../modules/addresses/ui/parameters/address_view_parameter.dart';
 import '../../modules/addresses/ui/views/address_view.dart';
 import '../../modules/addresses/ui/views/addresses_view.dart';
 import '../../modules/maps/ui/views/maps_view.dart';
+import '../../modules/splash/ui/views/splash_view.dart';
 import '../ui/widgets/shell_bottom_navigation_bar.dart';
 import 'routes.dart';
 
@@ -15,11 +16,15 @@ final _shellNavigatorKey =
 abstract class RouteConfig {
   static GoRouter config = GoRouter(
     routes: routes,
-    initialLocation: Routes.root,
+    initialLocation: Routes.splash,
     navigatorKey: navigatorKey,
   );
 
   static List<RouteBase> get routes => [
+        GoRoute(
+          path: Routes.splash,
+          builder: (context, state) => const SplashView(),
+        ),
         ShellRoute(
           navigatorKey: _shellNavigatorKey,
           builder: (context, state, child) =>
