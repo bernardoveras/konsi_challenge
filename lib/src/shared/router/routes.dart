@@ -1,4 +1,4 @@
-import '../extensions/extensions.dart';
+import '../../modules/addresses/domain/dtos/address_dto.dart';
 import 'router.dart';
 
 abstract class Routes {
@@ -6,18 +6,11 @@ abstract class Routes {
   static const String addresses = '/addresses';
   static const String createAddress = '/addresses/new';
   static String editAddress({
-    String cep = ':cep',
-    String? address,
+    AddressDto? address,
   }) {
-    if (cep != ':cep') cep = cep.removeSpecialCharacters()!;
-
     return RoutePathBuilder.build(
-      '$addresses/$cep',
-      queryParameters: address.isNotBlank
-          ? {
-              'address': address,
-            }
-          : null,
+      '$addresses/edit',
+      queryParameters: address?.toMap(),
     );
   }
 }

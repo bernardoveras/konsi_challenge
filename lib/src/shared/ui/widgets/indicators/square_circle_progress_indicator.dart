@@ -14,9 +14,9 @@ class SquareCircleProgressIndicator extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(12),
       child: const SizedBox.square(
-        dimension: 24,
+        dimension: 32,
         child: CircularProgressIndicator(
-          strokeWidth: 2.5,
+          strokeWidth: 4,
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../modules/addresses/ui/parameters/address_view_parameter.dart';
+import '../../modules/addresses/domain/dtos/address_dto.dart';
 import '../../modules/addresses/ui/views/address_view.dart';
 import '../../modules/addresses/ui/views/addresses_view.dart';
 import '../../modules/maps/ui/views/maps_view.dart';
@@ -30,12 +30,11 @@ abstract class RouteConfig {
               builder: (context, state) => const AddressView(),
             ),
             GoRoute(
-              path: ':cep',
+              path: 'edit',
               builder: (context, state) => AddressView(
-                parameter: AddressViewParameter(
-                  cep: state.pathParameters['cep'],
-                  address: state.uri.queryParameters['address'],
-                ),
+                address: state.uri.queryParameters.isEmpty
+                    ? null
+                    : AddressDto.fromMap(state.uri.queryParameters),
               ),
             ),
           ],

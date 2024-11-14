@@ -14,6 +14,15 @@ extension StringExtensions on String? {
     return result;
   }
 
+  /// Check if the string contains only numbers
+  bool isNumber() {
+    if (isBlank) return false;
+
+    final regex = RegExp(r'^-?[0-9]+$');
+
+    return regex.hasMatch(this!);
+  }
+
   String? nullIfEmpty() => defaultIfEmpty(null);
   String? defaultIfEmpty(String? defaultValue) => isBlank ? defaultValue : this;
 

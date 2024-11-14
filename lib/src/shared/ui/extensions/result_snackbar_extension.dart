@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:result_dart/result_dart.dart';
 
 import '../../errors/errors.dart';
+import '../services/snackbar/services/snackbar_service.dart';
 
 extension ResultSnackbarExtension on Result<Object, GenericFailure> {
   bool displaySnackbarWhenError(BuildContext context) {
@@ -9,11 +10,9 @@ extension ResultSnackbarExtension on Result<Object, GenericFailure> {
 
     final exception = exceptionOrNull()!;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(exception.message),
-        backgroundColor: Colors.red,
-      ),
+    SnackbarService.showError(
+      context,
+      message: exception.message,
     );
 
     return true;

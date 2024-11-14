@@ -21,6 +21,7 @@ dependencies:
   equatable: ^2.0.5
   get_it: ^8.0.2
   result_dart: ^1.1.1
+  validatorless: ^1.2.3
 
 dev_dependencies:
   flutter_test:

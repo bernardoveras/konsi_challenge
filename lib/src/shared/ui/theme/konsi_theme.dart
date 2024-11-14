@@ -8,6 +8,27 @@ abstract class KonsiTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: BrandColor.base,
     ),
+    scaffoldBackgroundColor: Colors.white,
+    dialogBackgroundColor: Colors.white,
+    filledButtonTheme: FilledButtonThemeData(
+      style: ButtonStyle(
+        fixedSize: const WidgetStatePropertyAll(
+          Size.fromHeight(56),
+        ),
+        backgroundColor: WidgetStatePropertyAll(BrandColor.base),
+        textStyle: const WidgetStatePropertyAll(
+          TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+      ),
+    ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
         foregroundColor: WidgetStateProperty.all(BrandColor.base),
@@ -36,8 +57,15 @@ abstract class KonsiTheme {
       ),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: BrandColor.base,
-      foregroundColor: Colors.white,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.grey.shade900,
+      titleSpacing: 8,
+      elevation: 0,
+      titleTextStyle: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey.shade900,
+      ),
     ),
   );
 
