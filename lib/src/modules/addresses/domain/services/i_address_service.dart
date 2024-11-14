@@ -9,5 +9,5 @@ abstract interface class IAddressService {
     LatLngDto location,
   );
   AsyncResult<List<AddressDto>, GenericFailure> getAddressByText(String addressText);
-  AsyncResult<LatLngDto, GenericFailure> getLocationFromAddress(String address);
+  AsyncResult<List<LatLngDto>, GenericFailure> getLocationFromAddress(String address);
 }

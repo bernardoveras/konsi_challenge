@@ -25,6 +25,12 @@ class MapsStore extends ChangeNotifier with GeolocatorStoreMixin {
     notifyListeners();
   }
 
+  List<AddressDto> addresses = [];
+  void changeAddresses(List<AddressDto> value) {
+    addresses = value;
+    notifyListeners();
+  }
+
   AsyncResult<List<AddressDto>, GenericFailure> getAddressByLocation(
     LatLngDto latLng,
   ) async {
@@ -52,10 +58,14 @@ class MapsStore extends ChangeNotifier with GeolocatorStoreMixin {
     String addressText,
   ) async {
     try {
+      debugPrint('Searching address $addressText');
+
       changeSearchingAddress(true);
 
       final addressFoundResult =
           await addressService.getAddressByText(addressText);
+
+      changeAddresses(addressFoundResult.getOrDefault([]));
 
       return addressFoundResult;
     } on GenericFailure catch (e) {

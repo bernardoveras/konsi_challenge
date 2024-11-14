@@ -28,7 +28,7 @@ class AddressGeocodingServiceImpl implements IAddressService {
 
       final parsedAddresses = addressesFound
           .map(
-            (x) => _parsePlacemarkToAddressDto(addressesFound.first).copyWith(
+            (x) => _parsePlacemarkToAddressDto(x).copyWith(
               latitude: location.latitude,
               longitude: location.longitude,
             ),
@@ -60,7 +60,7 @@ class AddressGeocodingServiceImpl implements IAddressService {
 
       final location = locationResult.getOrThrow();
 
-      final addressResult = await getAddressByLocation(location);
+      final addressResult = await getAddressByLocation(location.first);
 
       return addressResult;
     } catch (e) {
@@ -74,7 +74,7 @@ class AddressGeocodingServiceImpl implements IAddressService {
   }
 
   @override
-  AsyncResult<LatLngDto, GenericFailure> getLocationFromAddress(
+  AsyncResult<List<LatLngDto>, GenericFailure> getLocationFromAddress(
     String address,
   ) async {
     try {
@@ -89,9 +89,10 @@ class AddressGeocodingServiceImpl implements IAddressService {
         );
       }
 
-      final parsedLocation = _parseLocationToLatLngDto(locationsFound.first);
+      final parsedLocations =
+          locationsFound.map((x) => _parseLocationToLatLngDto(x)).toList();
 
-      return Success(parsedLocation);
+      return Success(parsedLocations);
     } catch (e) {
       return Failure(
         UnknownFailure(

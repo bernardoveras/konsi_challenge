@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../addresses/domain/dtos/address_dto.dart';
+
 class AddressListTile extends StatelessWidget {
+  final AddressDto address;
   final VoidCallback? onTap;
 
   const AddressListTile({
     super.key,
+    required this.address,
     this.onTap,
   });
 
@@ -14,16 +18,16 @@ class AddressListTile extends StatelessWidget {
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
       selected: true,
-      title: const Text(
-        '40170-115',
-        style: TextStyle(
+      title: Text(
+        address.postalCode ?? '-',
+        style: const TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.w600,
           fontSize: 20,
         ),
       ),
       subtitle: Text(
-        'Avenida Anita Garibaldi - Ondin...' * 2,
+        address.fullAddress(),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(

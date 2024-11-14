@@ -9,6 +9,7 @@ import '../../../../shared/dtos/lat_lng_dto.dart';
 import '../../../../shared/router/router.dart';
 import '../../../../shared/ui/extensions/extensions.dart';
 import '../../../../shared/ui/widgets/widgets.dart';
+import '../../../../shared/utils/debouncer.dart';
 import '../../../../shared/utils/utils.dart';
 import '../../../addresses/domain/dtos/address_dto.dart';
 import '../store/maps_store.dart';
@@ -29,6 +30,8 @@ class _MapsViewState extends State<MapsView> {
   late final GoogleMapController _mapController;
   final searchController = TextEditingController();
   final searchFocusNode = FocusNode();
+
+  final searchDebouncer = Debouncer(milliseconds: 500);
 
   var markers = <MarkerId, Marker>{};
 
@@ -291,7 +294,10 @@ class _MapsViewState extends State<MapsView> {
                           reverseDuration: const Duration(milliseconds: 300),
                           switchInCurve: Curves.ease,
                           switchOutCurve: Curves.ease,
-                          child: searchFocusNode.hasFocus
+                          child: (store.addresses.isNotEmpty &&
+                                      searchFocusNode.hasFocus) ||
+                                  searchFocusNode.hasFocus &&
+                                      store.searchingAddress
                               ? Container(
                                   key: const ValueKey('search_background'),
                                   color: Colors.white,
@@ -312,8 +318,6 @@ class _MapsViewState extends State<MapsView> {
                                 hintText: 'Buscar',
                                 focusNode: searchFocusNode,
                                 controller: searchController,
-                                enabled: !store.searchingCurrentLocation &&
-                                    !store.searchingAddress,
                                 padding: const WidgetStatePropertyAll(
                                   EdgeInsets.only(
                                     left: 16,
@@ -323,6 +327,15 @@ class _MapsViewState extends State<MapsView> {
                                 textInputAction: TextInputAction.search,
                                 onSubmitted: (_) =>
                                     getAddressByText(searchController.text),
+                                onChanged: (value) {
+                                  if (value.isEmpty) return;
+                                  if (value.length < 3) return;
+
+                                  searchDebouncer.run(() {
+                                    if (store.searchingAddress) return;
+                                    store.getAddressByText(value);
+                                  });
+                                },
                                 trailing: searchController.text.isNotEmpty ||
                                         searchFocusNode.hasFocus
                                     ? [
@@ -332,6 +345,7 @@ class _MapsViewState extends State<MapsView> {
                                               hideKeyboard(context);
                                               clearMarkers();
                                               searchController.clear();
+                                              store.addresses.clear();
                                             });
                                           },
                                           behavior: HitTestBehavior.opaque,
@@ -359,21 +373,30 @@ class _MapsViewState extends State<MapsView> {
                                   switchInCurve: Curves.ease,
                                   switchOutCurve: Curves.ease,
                                   child: searchFocusNode.hasFocus
-                                      ? ListView.separated(
-                                          itemCount: 10,
-                                          physics:
-                                              const BouncingScrollPhysics(),
-                                          padding: EdgeInsets.zero,
-                                          separatorBuilder: (context, index) =>
-                                              const Divider(),
-                                          itemBuilder: (context, index) {
-                                            return AddressListTile(
-                                              onTap: () {
-                                                hideKeyboard(context);
+                                      ? store.searchingAddress
+                                          ? const CircularProgressIndicator()
+                                          : ListView.separated(
+                                              itemCount: store.addresses.length,
+                                              physics:
+                                                  const BouncingScrollPhysics(),
+                                              padding: EdgeInsets.zero,
+                                              separatorBuilder:
+                                                  (context, index) =>
+                                                      const Divider(),
+                                              itemBuilder: (context, index) {
+                                                final address =
+                                                    store.addresses[index];
+
+                                                return AddressListTile(
+                                                  address: address,
+                                                  onTap: () {
+                                                    hideKeyboard(context);
+                                                    setAddressMarker(address);
+                                                    showAddressInfo(address);
+                                                  },
+                                                );
                                               },
-                                            );
-                                          },
-                                        )
+                                            )
                                       : const SizedBox.shrink(),
                                 ),
                               ),
